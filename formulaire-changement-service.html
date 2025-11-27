@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demande de Changement de Service</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #c41e3a 0%, #8b0000 100%);
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .header p {
+      margin: 8px 0 0 0;
+      opacity: 0.9;
+      font-size: 13px;
+    }
+
+    .form-content {
+      padding: 25px;
+    }
+
+    .section {
+      margin-bottom: 25px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #c41e3a;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a2e;
+      margin: 0 0 18px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: #c41e3a;
+      border-radius: 50%;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 12px;
+    }
+
+    .form-group {
+      flex: 1;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 5px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #c41e3a;
+      box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.15);
+    }
+
+    .signature-section {
+      display: flex;
+      gap: 20px;
+    }
+
+    .signature-box {
+      flex: 1;
+    }
+
+    .signature-box label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 5px;
+    }
+
+    .signature-canvas {
+      width: 100%;
+      height: 80px;
+      border: 2px dashed #ccc;
+      border-radius: 6px;
+      background: white;
+      cursor: crosshair;
+    }
+
+    .signature-canvas:hover {
+      border-color: #c41e3a;
+    }
+
+    .btn-clear-sig {
+      margin-top: 6px;
+      padding: 5px 10px;
+      font-size: 11px;
+      background: #f0f0f0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .btn-clear-sig:hover {
+      background: #e0e0e0;
+    }
+
+    .actions {
+      padding: 20px 25px 25px;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      border-top: 1px solid #eee;
+    }
+
+    .btn {
+      padding: 12px 28px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-reset {
+      background: #f0f0f0;
+      color: #666;
+    }
+
+    .btn-reset:hover {
+      background: #e0e0e0;
+    }
+
+    .btn-generate {
+      background: linear-gradient(135deg, #c41e3a 0%, #8b0000 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(196, 30, 58, 0.4);
+    }
+
+    .btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(196, 30, 58, 0.5);
+    }
+
+    .btn-generate:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .info-box {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      color: #856404;
+    }
+
+    /* ===== TEMPLATE IMAGE CACHÉ ===== */
+    #image-template {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: -1;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .image-wrapper {
+      position: relative;
+      width: 595px;
+      height: 842px;
+      background: white;
+      overflow: hidden;
+    }
+
+    .image-wrapper .fond {
+      width: 595px;
+      height: 842px;
+      display: block;
+      object-fit: cover;
+    }
+
+    .image-field {
+      position: absolute;
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      color: #000;
+      white-space: nowrap;
+    }
+
+    .image-signature {
+      position: absolute;
+      object-fit: contain;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      
+      .form-row {
+        flex-direction: column;
+        gap: 12px;
+      }
+      
+      .signature-section {
+        flex-direction: column;
+      }
+      
+      .actions {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+      }
+
+      .header h1 {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>📝 Demande de Changement de Service</h1>
+      <p>Remplissez le formulaire puis générez la demande</p>
+    </div>
+
+    <div class="form-content">
+      
+      <div class="info-box">
+        ⚠️ <strong>Rappel :</strong> La demande doit être complétée, signée et soumise au responsable du planning 
+        <strong>2 JOURS AU MINIMUM</strong> précédant le jour de changement et avant 11h00.
+      </div>
+
+      <!-- Date de la demande -->
+      <div class="section">
+        <h3 class="section-title">Informations générales</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dateDemande">Date de la demande</label>
+            <input type="date" id="dateDemande">
+          </div>
+          <div class="form-group"></div>
+        </div>
+      </div>
+
+      <!-- Agent demandeur -->
+      <div class="section">
+        <h3 class="section-title">Agent demandeur</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nomAgent1">Nom complet de l'agent</label>
+            <input type="text" id="nomAgent1" placeholder="Nom et prénom">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="planifieService1">Planifié sur le service n°</label>
+            <input type="text" id="planifieService1" placeholder="N° service">
+          </div>
+          <div class="form-group">
+            <label for="effectuerService1">À effectuer le service n°</label>
+            <input type="text" id="effectuerService1" placeholder="N° service">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="jourDate1">Jour (date)</label>
+            <input type="date" id="jourDate1">
+          </div>
+          <div class="form-group">
+            <label for="jourDate1b">Jour (date)</label>
+            <input type="date" id="jourDate1b">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="etaitRepos1">Était en repos le (date)</label>
+            <input type="date" id="etaitRepos1">
+          </div>
+          <div class="form-group">
+            <label for="seraRepos1">Sera en repos le (date)</label>
+            <input type="date" id="seraRepos1">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="servicePrecedent1">N° service précédent</label>
+            <input type="text" id="servicePrecedent1" placeholder="N°">
+          </div>
+          <div class="form-group">
+            <label for="serviceChangement1">N° service jour changement</label>
+            <input type="text" id="serviceChangement1" placeholder="N°">
+          </div>
+          <div class="form-group">
+            <label for="serviceSuivant1">N° service suivant</label>
+            <input type="text" id="serviceSuivant1" placeholder="N°">
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent accepteur -->
+      <div class="section">
+        <h3 class="section-title">Agent accepteur (en accord avec)</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nomAgent2">Nom complet de l'agent</label>
+            <input type="text" id="nomAgent2" placeholder="Nom et prénom">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="planifieService2">Planifié sur le service n°</label>
+            <input type="text" id="planifieService2" placeholder="N° service">
+          </div>
+          <div class="form-group">
+            <label for="effectuerService2">À effectuer le service n°</label>
+            <input type="text" id="effectuerService2" placeholder="N° service">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="jourDate2">Jour (date)</label>
+            <input type="date" id="jourDate2">
+          </div>
+          <div class="form-group">
+            <label for="jourDate2b">Jour (date)</label>
+            <input type="date" id="jourDate2b">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="etaitRepos2">Était en repos le (date)</label>
+            <input type="date" id="etaitRepos2">
+          </div>
+          <div class="form-group">
+            <label for="seraRepos2">Sera en repos le (date)</label>
+            <input type="date" id="seraRepos2">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="servicePrecedent2">N° service précédent</label>
+            <input type="text" id="servicePrecedent2" placeholder="N°">
+          </div>
+          <div class="form-group">
+            <label for="serviceChangement2">N° service jour changement</label>
+            <input type="text" id="serviceChangement2" placeholder="N°">
+          </div>
+          <div class="form-group">
+            <label for="serviceSuivant2">N° service suivant</label>
+            <input type="text" id="serviceSuivant2" placeholder="N°">
+          </div>
+        </div>
+      </div>
+
+      <!-- Signatures -->
+      <div class="section">
+        <h3 class="section-title">Signatures des agents</h3>
+        
+        <div class="signature-section">
+          <div class="signature-box">
+            <label>Signature Agent demandeur</label>
+            <canvas id="signatureAgent1" class="signature-canvas"></canvas>
+            <button type="button" class="btn-clear-sig" id="clearSig1">Effacer</button>
+          </div>
+          <div class="signature-box">
+            <label>Signature Agent accepteur</label>
+            <canvas id="signatureAgent2" class="signature-canvas"></canvas>
+            <button type="button" class="btn-clear-sig" id="clearSig2">Effacer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-reset" id="resetBtn">🔄 Réinitialiser</button>
+      <button type="button" class="btn btn-generate" id="generateBtn">📸 Générer la demande</button>
+    </div>
+  </div>
+
+  <!-- Template image caché -->
+  <div id="image-template">
+    <div class="image-wrapper" id="image-capture">
+      <img id="fond-img" class="fond">
+
+      <!-- Date demande -->
+      <span class="image-field" id="field-dateDemande" style="top: 31px; left: 350px; font-size: 13px;"></span>
+
+      <!-- Agent 1 - Nom -->
+      <span class="image-field" id="field-nomAgent1" style="top: 229px; left: 110px; font-size: 14px; font-weight: bold;"></span>
+
+      <!-- Agent 1 - Colonne gauche -->
+      <span class="image-field" id="field-planifieService1" style="top: 263px; left: 200px;"></span>
+      <span class="image-field" id="field-jourDate1" style="top: 287px; left: 200px;"></span>
+      <span class="image-field" id="field-etaitRepos1" style="top: 309px; left: 200px;"></span>
+
+      <!-- Agent 1 - Colonne droite -->
+      <span class="image-field" id="field-effectuerService1" style="top: 263px; left: 465px;"></span>
+      <span class="image-field" id="field-jourDate1b" style="top: 287px; left: 465px;"></span>
+      <span class="image-field" id="field-seraRepos1" style="top: 309px; left: 465px;"></span>
+
+      <!-- Agent 1 - Tableau services -->
+      <span class="image-field" id="field-servicePrecedent1" style="top: 372px; left: 330px; font-size: 10px;"></span>
+      <span class="image-field" id="field-serviceChangement1" style="top: 372px; left: 408px; font-size: 10px;"></span>
+      <span class="image-field" id="field-serviceSuivant1" style="top: 372px; left: 475px; font-size: 10px;"></span>
+
+      <!-- Agent 2 - Nom -->
+      <span class="image-field" id="field-nomAgent2" style="top: 430px; left: 110px; font-size: 14px; font-weight: bold;"></span>
+
+      <!-- Agent 2 - Colonne gauche -->
+      <span class="image-field" id="field-planifieService2" style="top: 465px; left: 200px;"></span>
+      <span class="image-field" id="field-jourDate2" style="top: 488px; left: 200px;"></span>
+      <span class="image-field" id="field-etaitRepos2" style="top: 510px; left: 200px;"></span>
+
+      <!-- Agent 2 - Colonne droite -->
+      <span class="image-field" id="field-effectuerService2" style="top: 465px; left: 465px;"></span>
+      <span class="image-field" id="field-jourDate2b" style="top: 488px; left: 465px;"></span>
+      <span class="image-field" id="field-seraRepos2" style="top: 510px; left: 465px;"></span>
+
+      <!-- Agent 2 - Tableau services -->
+      <span class="image-field" id="field-servicePrecedent2" style="top: 571px; left: 330px; font-size: 10px;"></span>
+      <span class="image-field" id="field-serviceChangement2" style="top: 571px; left: 408px; font-size: 10px;"></span>
+      <span class="image-field" id="field-serviceSuivant2" style="top: 571px; left: 475px; font-size: 10px;"></span>
+
+      <!-- Signatures -->
+      <img class="image-signature" id="sig-agent1" style="top: 640px; left: 60px; width: 200px; height: 45px;">
+      <img class="image-signature" id="sig-agent2" style="top: 640px; left: 340px; width: 200px; height: 45px;">
+    </div>
+  </div>
+
+  <script>
+    // ===== CONFIGURATION DE L'IMAGE DE FOND =====
+    // Image de fond encodée en base64 pour éviter les problèmes de chargement
+    const BACKGROUND_IMAGE_BASE64 = 'backgroundform.jpg'; // Sera chargé et converti automatiquement
+    
+    // ===== INITIALISATION DES SIGNATURES =====
+    const canvas1 = document.getElementById('signatureAgent1');
+    const canvas2 = document.getElementById('signatureAgent2');
+    
+    const sigPad1 = new SignaturePad(canvas1, { 
+      backgroundColor: 'rgb(255,255,255)', 
+      penColor: '#000080',
+      minWidth: 0.5,
+      maxWidth: 2.5
+    });
+    const sigPad2 = new SignaturePad(canvas2, { 
+      backgroundColor: 'rgb(255,255,255)', 
+      penColor: '#000080',
+      minWidth: 0.5,
+      maxWidth: 2.5
+    });
+
+    function resizeCanvas(canvas, pad) {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      const data = pad.toDataURL();
+      const empty = pad.isEmpty();
+      
+      canvas.width = canvas.offsetWidth * ratio;
+      canvas.height = canvas.offsetHeight * ratio;
+      canvas.getContext('2d').scale(ratio, ratio);
+      
+      if (!empty) {
+        pad.fromDataURL(data, { ratio: 1 });
+      }
+    }
+
+    function initCanvases() {
+      resizeCanvas(canvas1, sigPad1);
+      resizeCanvas(canvas2, sigPad2);
+    }
+
+    window.addEventListener('resize', initCanvases);
+    
+    // Initialiser après le chargement complet
+    window.addEventListener('load', () => {
+      initCanvases();
+      // Date du jour par défaut
+      document.getElementById('dateDemande').value = new Date().toISOString().split('T')[0];
+    });
+
+    document.getElementById('clearSig1').addEventListener('click', () => sigPad1.clear());
+    document.getElementById('clearSig2').addEventListener('click', () => sigPad2.clear());
+
+    // ===== RÉINITIALISATION =====
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (confirm('Voulez-vous effacer tous les champs ?')) {
+        document.querySelectorAll('input').forEach(i => i.value = '');
+        sigPad1.clear();
+        sigPad2.clear();
+        document.getElementById('dateDemande').value = new Date().toISOString().split('T')[0];
+      }
+    });
+
+    // ===== FORMATAGE DES DATES =====
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const [y, m, d] = dateStr.split('-');
+      return `${d}/${m}/${y}`;
+    }
+
+    // ===== GÉNÉRATION DE L'IMAGE =====
+    document.getElementById('generateBtn').addEventListener('click', generateImage);
+
+    async function generateImage() {
+      const btn = document.getElementById('generateBtn');
+      btn.textContent = '⏳ Génération...';
+      btn.disabled = true;
+
+      try {
+        // Charger l'image de fond
+        const fondImg = document.getElementById('fond-img');
+
+        // Essayer de charger l'image avec différentes méthodes
+        await loadBackgroundImage(fondImg);
+
+        // Remplir le template avec les valeurs
+        const fields = [
+          'dateDemande', 'nomAgent1', 'planifieService1', 'jourDate1', 'etaitRepos1',
+          'effectuerService1', 'jourDate1b', 'seraRepos1', 'servicePrecedent1',
+          'serviceChangement1', 'serviceSuivant1', 'nomAgent2', 'planifieService2',
+          'jourDate2', 'etaitRepos2', 'effectuerService2', 'jourDate2b', 'seraRepos2',
+          'servicePrecedent2', 'serviceChangement2', 'serviceSuivant2'
+        ];
+
+        fields.forEach(id => {
+          const input = document.getElementById(id);
+          const imageField = document.getElementById('field-' + id);
+          if (input && imageField) {
+            let value = input.value;
+            // Formater les dates
+            if (input.type === 'date' && value) {
+              value = formatDate(value);
+            }
+            imageField.textContent = value;
+          }
+        });
+
+        // Ajouter les signatures
+        const sig1 = document.getElementById('sig-agent1');
+        const sig2 = document.getElementById('sig-agent2');
+
+        if (!sigPad1.isEmpty()) {
+          sig1.src = sigPad1.toDataURL('image/png');
+        } else {
+          sig1.removeAttribute('src');
+        }
+
+        if (!sigPad2.isEmpty()) {
+          sig2.src = sigPad2.toDataURL('image/png');
+        } else {
+          sig2.removeAttribute('src');
+        }
+
+        // Délai pour que les images se chargent complètement
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Générer l'image
+        const element = document.getElementById('image-capture');
+        const nomAgent = document.getElementById('nomAgent1').value || 'document';
+        const date = new Date().toISOString().split('T')[0];
+        const filename = `changement-service-${nomAgent.replace(/\s+/g, '-')}-${date}.jpg`;
+
+        // Rendre l'élément visible temporairement pour la capture
+        const template = document.getElementById('image-template');
+        template.style.opacity = '1';
+        template.style.zIndex = '9999';
+
+        // Attendre un petit délai pour que le navigateur rende l'élément
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Capturer avec html2canvas
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          useCORS: false,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          width: 595,
+          height: 842
+        });
+
+        // Cacher à nouveau l'élément
+        template.style.opacity = '0';
+        template.style.zIndex = '-1';
+
+        // Convertir en image et télécharger
+        canvas.toBlob(function(blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = filename;
+          link.click();
+          URL.revokeObjectURL(url);
+
+          btn.textContent = '✅ Image générée !';
+          setTimeout(() => {
+            btn.textContent = '📸 Générer la demande';
+            btn.disabled = false;
+          }, 2000);
+        }, 'image/jpeg', 0.95);
+
+      } catch (err) {
+        console.error('Erreur:', err);
+        btn.textContent = '📸 Générer la demande';
+        btn.disabled = false;
+        alert('Erreur lors de la génération de l\'image.\n\nAssurez-vous que le fichier "backgroundform.jpg" est dans le même dossier que ce fichier HTML.');
+      }
+    }
+
+    // Fonction pour charger l'image de fond en base64
+    function loadBackgroundImage(imgElement) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = function() {
+          // Convertir l'image en base64 pour éviter les problèmes CORS
+          const canvas = document.createElement('canvas');
+          canvas.width = 595;  // Format A4 en points
+          canvas.height = 842;
+          const ctx = canvas.getContext('2d');
+
+          // Dessiner l'image redimensionnée
+          ctx.drawImage(img, 0, 0, 595, 842);
+
+          try {
+            const dataURL = canvas.toDataURL('image/jpeg', 1.0);
+            imgElement.onload = function() {
+              console.log('Image de fond chargée avec succès - dimensions:', this.naturalWidth, 'x', this.naturalHeight);
+              resolve();
+            };
+            imgElement.onerror = function() {
+              console.error('Erreur lors du chargement de l\'image dans l\'élément');
+              resolve();
+            };
+            imgElement.src = dataURL;
+          } catch (e) {
+            console.error('Erreur conversion base64:', e);
+            imgElement.src = BACKGROUND_IMAGE_BASE64;
+            setTimeout(resolve, 100);
+          }
+        };
+        img.onerror = () => {
+          // Si l'image ne charge pas, créer un fond blanc de secours
+          console.warn('Image de fond non trouvée, utilisation d\'un fond blanc');
+          const canvas = document.createElement('canvas');
+          canvas.width = 595;
+          canvas.height = 842;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, 595, 842);
+          imgElement.src = canvas.toDataURL('image/jpeg', 0.95);
+          setTimeout(resolve, 100);
+        };
+        img.src = BACKGROUND_IMAGE_BASE64;
+      });
+    }
+  </script>
+</body>
+</html>
